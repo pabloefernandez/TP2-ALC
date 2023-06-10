@@ -112,30 +112,20 @@ def precision():
 c = precision()
 
 
-
-#%%
-
-
-
-
-
-
-
-
-#%%
-def potencia_matriz(B,x,k):#Aca se realiza el metodo de la potencia
-  e = pow(10,-5)
-  fila = x.shape[0]
-  x = x.reshape((1,fila))
-  x_anterior = x
-  x = x.reshape((fila,1))
-  x = B @ x/np.linalg.norm(B @ x)
-  x = x.reshape((fila,1))
-  while(x_anterior @ x >= (1-e)):
-      x_anterior = x.reshape((1,fila))
-      x = B @ x/np.linalg.norm(B @ x)
-      x = x.reshape((fila,1))
-  return x
+def potencia_matriz(B):#Aca se realiza el metodo de la potencia
+  epsilon = 1e-10
+  n, m = B.shape
+  x = np.random.rand(min(n,m))
+  x = x/np.linalg.norm(x)
+  ultimo_x = None
+  x_actual = x
+  while True:
+      ultimo_x = x_actual
+      x_actual = B@ultimo_x
+      x_actual = x_actual / np.linalg.norm(x_actual)
+      if abs(x_actual@ultimo_x) > 1 - epsilon:
+          return x_actual  
+#%% EJ 3
 
 
 def cociente(B, x): #Implementacion de Cociente de Rayleigh para aproximar autovalor para cada aproximacion de autovector proviente del metodo de la potencia
@@ -144,37 +134,25 @@ def cociente(B, x): #Implementacion de Cociente de Rayleigh para aproximar autov
     resultado = (x_transpuesta @ Bx)/(x_transpuesta @ x)
     return resultado
 
-x = np.random.rand(2)
-x_norm  = x / np.linalg.norm(x)
-A_primera = np.random.rand(3,2)
-A = A_primera
-At = np.transpose(A)
-[U_1,S,Vh] = np.linalg.svd(A)
-
-i,j = (A.shape)
-U = np.zeros((i,i))
-E = np.zeros((i,j))
-V_adjunta = np.zeros((j,j))
-for k in range(j): #solo me imteresa el caso m>n pq A es de 10000*784, entonces m > n
-    At = np.transpose(A)
-    B = At @ A
-    autovector = potencia_matriz(B,x,k)
-    sigma = np.sqrt(cociente(B,autovector))
-    u1 = (A@autovector)/sigma #Calulado todo, vamos a ir formando U, E, V
-    U[k] = u1.reshape((u1.shape[0],))
-    E[k][k] = sigma
-    V_adjunta[k] = autovector.reshape((autovector.shape[0],)) #Ya esta transpuesta
-    autovector_traspuesto = autovector.reshape((1,j))
-    
-    A = A - sigma*(u1.reshape((i,1)) @ autovector_traspuesto)
-
-U = np.transpose(U)
-
-F = U@E@V_adjunta
-print(F)
-print(A_primera)
-
-#%% 4a
+def svd(A):
+  i,j = (A.shape)
+  U = np.zeros((i,i))
+  E = np.zeros((i,j))
+  V_adjunta = np.zeros((j,j))  
+  for k in range(j): #solo me imteresa el caso m>n pq A es de 10000*784, entonces m > n
+      At = np.transpose(A)
+      B = At @ A
+      autovector = potencia_matriz(B)
+      sigma = np.sqrt(cociente(B,autovector))
+      u1 = (A@autovector)/sigma #Calulado todo, vamos a ir formando U, E, V
+      U[k] = u1.reshape((u1.shape[0],))
+      E[k][k] = sigma
+      V_adjunta[k] = autovector.reshape((autovector.shape[0],)) #Ya esta transpuesta
+      autovector_traspuesto = autovector.reshape((1,j))
+      A = A - sigma*(u1.reshape((i,1)) @ autovector_traspuesto)
+  U = np.transpose(U)
+  return U,E,V_adjunta 
+#%% EJ 4a
 test_2000 = test.iloc[:2000][:].copy()
 
 lista_matrices_M = []
@@ -190,6 +168,18 @@ for i in range(len(test_2000)):
     vector_imagen = vector_imagen.reshape((vector_imagen.shape[1],vector_imagen.shape[0]))
     lista_matrices_M[digito][lista_contadores[digito]] = vector_imagen
     lista_contadores[digito] = lista_contadores[digito] +  1
+for i in range(10):
+    lista_matrices_M[i] = np.transpose(lista_matrices_M[i])
+
+#%% EJ 4b
+lista_svd = []
+for i in range(10):
+    (U,S,V) = svd(lista_matrices_M[i])
+    lista_svd.append((U,S,V))
+
+u1 = lista_svd[i][0][:,0].reshape((28,28))
+plt.imshow(u1,cmap="gray")
+plt.close()
 #%%%
 
 
