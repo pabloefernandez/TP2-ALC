@@ -111,7 +111,7 @@ def precision():
     return contador,contador/200
 c = precision()
 
-
+#%% EJ 3
 def potencia_matriz(B):#Aca se realiza el metodo de la potencia
   epsilon = 1e-10
   n, m = B.shape
@@ -125,7 +125,7 @@ def potencia_matriz(B):#Aca se realiza el metodo de la potencia
       x_actual = x_actual / np.linalg.norm(x_actual)
       if abs(x_actual@ultimo_x) > 1 - epsilon:
           return x_actual  
-#%% EJ 3
+
 
 
 def cociente(B, x): #Implementacion de Cociente de Rayleigh para aproximar autovalor para cada aproximacion de autovector proviente del metodo de la potencia
