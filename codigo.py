@@ -33,13 +33,13 @@ def cantidad_de_digitos(data):
         id = data.iloc[i,0]
         lista_apariciones[id] = lista_apariciones[id] + 1
     return lista_apariciones
-a = (cantidad_de_digitos())#Cant de veces que aparece cada digito
+a = (cantidad_de_digitos(entrenamiento.iloc[0:2000,:]))#Cant de veces que aparece cada digito
 
 def promedio_im():
     lista_con_promedios=[]
     for i in range(10):
         lista_con_promedios.append([np.zeros(785)])
-    for i, imagen in enumerate(entrenamiento.iterrows()):
+    for i, imagen in enumerate(entrenamiento.iloc[0:2000,:].iterrows()):
         id = entrenamiento.iloc[i,0]
         lista_con_promedios[id] =np.add(lista_con_promedios[id],imagen[1].values)
     return lista_con_promedios
@@ -177,13 +177,58 @@ for i in range(10):
     (U,S,V) = svd(lista_matrices_M[i])
     lista_svd.append((U,S,V))
 
-u1 = lista_svd[i][0][:,0].reshape((28,28))
+u1 = lista_svd[1][0][:,0].reshape((28,28))
 plt.imshow(u1,cmap="gray")
 plt.close()
 #%%%
 
+#4e)
+test_2 = test.iloc[0:200,1:]
+#def func(lista_svd):
+lista_aproximaciones_final = []
+for x in test_2.iterrows():
+    x = x[1].to_numpy().reshape((x[1].shape[0],1)) 
+    lista_aproximaciones = []
+    for k in range(5):    
+        for index,M in enumerate(lista_svd):
+            U = M[0]
+            U_columnas = U[:,0:k+1]
+            i,j = U_columnas.shape
+            #matriz_proyeccion = U_columnas@U_columnas.T#reshape((j,i))
+            #rint(matriz_proyeccion.shape)
+            U_columnas_T = U_columnas.T
+            residuo = x-(U_columnas @ (U_columnas_T@x))
+            if index == 0:
+                residuo_minimo = residuo
+            if np.linalg.norm(residuo) <= np.linalg.norm(residuo_minimo):
+                residuo_minimo = residuo
+                prediccion_digito = index
+        lista_aproximaciones.append(prediccion_digito)    
+    lista_aproximaciones_final.append(lista_aproximaciones)
+
+def predicciones_k(lista_aproximaciones_final):
+    lista_predicciones_final = []
+    for i in range(5):
+        lista_predicciones = []
+        for lista_aprox in lista_aproximaciones_final:
+            lista_predicciones.append(lista_aprox[i])
+        lista_predicciones_final.append(lista_predicciones)
+    return lista_predicciones_final
+
+lista = predicciones_k(lista_aproximaciones_final)
+#%% PRE
+contador = 0
+lista_precisiones = []
+for i in range(5):
+    contador = 0
+    for k in range(200):
+        if test.iloc[k,0] == lista[i][k]:
+            contador += 1
+    precision = contador/200
+    lista_precisiones.append(precision)
+#%%
+    #return lista_aproximaciones_final
 
 
-
-
+#lista = func(lista_svd)
 
