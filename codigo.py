@@ -84,7 +84,7 @@ def predicciones():
         dist_min = np.linalg.norm(vectores_promedio[0] - vector_imagen)
         for j in range(10):
             dist = np.linalg.norm(vectores_promedio[j] - vector_imagen)
-            if dist < dist_min:
+            if dist <= dist_min:
                 dist_min = dist
                 prediccion = j # j es el digito
         lista_predicciones.append(prediccion)
