@@ -33,7 +33,7 @@ def cantidad_de_digitos(data):
         digito = data.iloc[i,0]
         lista_apariciones[digito] = lista_apariciones[digito] + 1
     return lista_apariciones
-
+entrenamiento_2000.iloc[:,0].value_counts()
 #%% 1b)
 a = (cantidad_de_digitos(entrenamiento))#Cant de veces que aparece cada digito
 b = (cantidad_de_digitos(test))
@@ -47,15 +47,14 @@ vector_imagen = None
 def promedio_im():
     vectores_promedio = []
     lista_con_sumas=[]
-    for i in range(10):
+    for i in range(10): #Creo un array grande con 10 listas de 784 ceros
         lista_con_sumas.append([np.zeros(784)])
     for i in range(len(entrenamiento_2000)):
         vector_imagen = entrenamiento_2000.iloc[i,1:].to_numpy()
         digito = entrenamiento_2000.iloc[i,0]
-        arr = lista_con_sumas[digito] + vector_imagen
-        lista_con_sumas[digito] = arr
+        lista_con_sumas[digito] = (lista_con_sumas[digito] + vector_imagen)
     for i in range(10):
-        vector_promedio = np.divide(lista_con_sumas[i],cantidad_digitos_2000[i])
+        vector_promedio =lista_con_sumas[i]/cantidad_digitos_2000[i]
         vectores_promedio.append(vector_promedio)
     return vectores_promedio
 vectores_promedio = promedio_im() # h tiene la suma de todos los vectores(sin dividir)
@@ -81,9 +80,9 @@ def predicciones():
     lista_predicciones = []
     for i in range(len(test_200)):
         vector_imagen = test_200.iloc[i,:].to_numpy()
-        dist_min = np.linalg.norm(vectores_promedio[0] - vector_imagen)
+        dist_min = np.linalg.norm(vector_imagen - vectores_promedio[0] )
         for j in range(10):
-            dist = np.linalg.norm(vectores_promedio[j] - vector_imagen)
+            dist = np.linalg.norm( vector_imagen - vectores_promedio[j] )
             if dist <= dist_min:
                 dist_min = dist
                 prediccion = j # j es el digito
@@ -147,13 +146,13 @@ def svd(A):
 test_2000 = entrenamiento.iloc[:2000,:]
 
 lista_matrices_M = []
-lista_cantidad = cantidad_de_digitos(test_2000)
+lista_cantidad = cantidad_de_digitos(entrenamiento_2000)
 for i in range(10):
     lista_matrices_M.append(np.zeros((lista_cantidad[i],784)))
 lista_contadores = [0]*10
 for i in range(len(test_2000)):
-    digito = test_2000[0][i]
-    serie = test_2000.iloc[i][1:]
+    digito = entrenamiento_2000[0][i]
+    serie = entrenamiento_2000.iloc[i][1:]
     df = serie.to_frame()
     vector_imagen = df.to_numpy()
     vector_imagen = vector_imagen.reshape((vector_imagen.shape[1],vector_imagen.shape[0]))
@@ -177,7 +176,7 @@ plt.imshow(u1)
 test_2 = test.iloc[0:200,1:]
 #def func(lista_svd):
 lista_aproximaciones_final = []
-for x in test_2.iterrows():
+for x in test_200.iterrows():
     x = x[1].to_numpy().reshape((x[1].shape[0],1)) 
     lista_aproximaciones = []
     for k in range(5):    
@@ -222,4 +221,26 @@ for i in range(5):
 
 
 #lista = func(lista_svd)
+"""
+5) Puede verse como la prediccion del ejercicio 2 caoncuerda con la precision del ejercicio 4, tomando un k =1. 
+    Tambien puede verse que mientras mayor era el k tomado, mayor era la precision del "modelo". 
+    Que la k sea mayor, no significa que va a ser una mejora absoluta en la precision. Es decir que pueden haber digitos
+    que un k = 1 lo acierte bien, pero que un k =3 no. Lo que si sucede es que la precision global aumenta, es decir
+    su repressentacion se acopla mejor a los datos dados.
+    """
+#%%
+
+def imagenes_mal_graficadas(lista) :
+    lista_mal_graf=[]
+    for i in range(200):
+           if lista[0][i] != lista[2][i]:
+               pred_para_k1 = lista[0][i]
+               pred_para_k3 = lista[2][i]
+               correcto = test.iloc[i][0]
+               lista_mal_graf.append([pred_para_k1, pred_para_k3, correcto])
+    return lista_mal_graf
+
+lista_mal_graf = imagenes_mal_graficadas(lista)
+    
+
 
