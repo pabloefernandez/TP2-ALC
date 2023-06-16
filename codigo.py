@@ -30,86 +30,77 @@ def graficar_im_list(imagenes,n):
 def cantidad_de_digitos(data):
     lista_apariciones = [0]*10
     for i in range(len(data)):
-        id = data.iloc[i,0]
-        lista_apariciones[id] = lista_apariciones[id] + 1
+        digito = data.iloc[i,0]
+        lista_apariciones[digito] = lista_apariciones[digito] + 1
     return lista_apariciones
-a = (cantidad_de_digitos(entrenamiento.iloc[0:2000,:]))#Cant de veces que aparece cada digito
+
+#%% 1b)
+a = (cantidad_de_digitos(entrenamiento))#Cant de veces que aparece cada digito
+b = (cantidad_de_digitos(test))
+#%% 1c)
+entrenamiento_2000 = entrenamiento.iloc[0:2000,:]
+cantidad_digitos_2000 = cantidad_de_digitos(entrenamiento_2000)
+vector_imagen = None
+
+#%%
 
 def promedio_im():
-    lista_con_promedios=[]
+    vectores_promedio = []
+    lista_con_sumas=[]
     for i in range(10):
-        lista_con_promedios.append([np.zeros(785)])
-    for i, imagen in enumerate(entrenamiento.iloc[0:2000,:].iterrows()):
-        id = entrenamiento.iloc[i,0]
-        lista_con_promedios[id] =np.add(lista_con_promedios[id],imagen[1].values)
-    return lista_con_promedios
-h = (promedio_im()) # h tiene la suma de todos los vectores(sin dividir)
+        lista_con_sumas.append([np.zeros(784)])
+    for i in range(len(entrenamiento_2000)):
+        vector_imagen = entrenamiento_2000.iloc[i,1:].to_numpy()
+        digito = entrenamiento_2000.iloc[i,0]
+        arr = lista_con_sumas[digito] + vector_imagen
+        lista_con_sumas[digito] = arr
+    for i in range(10):
+        vector_promedio = np.divide(lista_con_sumas[i],cantidad_digitos_2000[i])
+        vectores_promedio.append(vector_promedio)
+    return vectores_promedio
+vectores_promedio = promedio_im() # h tiene la suma de todos los vectores(sin dividir)
     
 
 #Sin dividir por el promedio se siguen viendo los numeros de igual manera
-def calc_prom(i):
-    vector_promedio_con_id = np.divide(h[i], a[i])
-    id = vector_promedio_con_id[0][0]
-    vector_promedio_sin_id = vector_promedio_con_id[0][1:] #El [0] es solamente pq como se guarda el valor,no deberia estar
-    return id, vector_promedio_sin_id
-
-vector_promedio_0 = calc_prom(0)[1]
-vector_promedio_1 = calc_prom(1)[1]
-vector_promedio_2 = calc_prom(2)[1]
-vector_promedio_3 = calc_prom(3)[1]
-vector_promedio_4 = calc_prom(4)[1]
-vector_promedio_5 = calc_prom(5)[1]
-vector_promedio_6 = calc_prom(6)[1]
-vector_promedio_7= calc_prom(7)[1]
-vector_promedio_8 = calc_prom(8)[1]
-vector_promedio_9 = calc_prom(9)[1]
-
-id =  calc_prom(6)[0]
-
 def graficar_prom():
-    imagen = vector_promedio_0.reshape((28,28))
+    imagen = vectores_promedio[0].reshape((28,28))
     plt.imshow(imagen)
     plt.title(id)
 
 graficar_prom()
-    
-
-
-
- 
-    
+      
  #%%
 #%%
 """
 ej2
 """
 #%%
-df = test.iloc[0:200,1:]
+test_200 = test.iloc[0:200,1:]
 
 def predicciones():
     lista_predicciones = []
-    for i, vector in enumerate(df.iterrows()):
-        vector = vector[1]
-        dist_min = np.linalg.norm(calc_prom(0)[1] - vector)
-        for j in range(9): 
-             dist = np.linalg.norm(calc_prom(j)[1] - vector)
-             if dist < dist_min:
-                 dist_min = dist
-                 prediccion = calc_prom(j)[0]
-        lista_predicciones.append(prediccion) #Voy prediciendo el vector que representa el entrenamiento.
+    for i in range(len(test_200)):
+        vector_imagen = test_200.iloc[i,:].to_numpy()
+        dist_min = np.linalg.norm(vectores_promedio[0] - vector_imagen)
+        for j in range(10):
+            dist = np.linalg.norm(vectores_promedio[j] - vector_imagen)
+            if dist < dist_min:
+                dist_min = dist
+                prediccion = j # j es el digito
+        lista_predicciones.append(prediccion)
     return lista_predicciones
-d = predicciones()
+lista_predicciones = predicciones()
 #Me falta hacer una funcion que calcule vectores promedios al darle una i, osea basicamente sacar delgrafico_prom el calculo a una funcion.
 
 
 
 def precision():
     contador = 0
-    for i, id in enumerate(test.iloc[0:200,0]):
-        if id == d[i]:
+    for i in range(len(test_200)):
+        if test.iloc[i,0] == lista_predicciones[i]:
             contador += 1
-    return contador,contador/200
-c = precision()
+    return contador,contador/len(test_200)
+precision = precision()
 
 #%% EJ 3
 def potencia_matriz(B):#Aca se realiza el metodo de la potencia
@@ -153,7 +144,7 @@ def svd(A):
   U = np.transpose(U)
   return U,E,V_adjunta 
 #%% EJ 4a
-test_2000 = test.iloc[:2000][:].copy()
+test_2000 = entrenamiento.iloc[:2000,:]
 
 lista_matrices_M = []
 lista_cantidad = cantidad_de_digitos(test_2000)
@@ -177,9 +168,9 @@ for i in range(10):
     (U,S,V) = svd(lista_matrices_M[i])
     lista_svd.append((U,S,V))
 
-u1 = lista_svd[1][0][:,0].reshape((28,28))
-plt.imshow(u1,cmap="gray")
-plt.close()
+u1 = lista_svd[0][0][:,0].reshape((28,28))
+plt.imshow(u1)
+
 #%%%
 
 #4e)
